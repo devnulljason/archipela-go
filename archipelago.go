@@ -4,41 +4,77 @@
 package archipelago
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/url"
 
 	"github.com/gorilla/websocket"
 )
 
-func Connect(host string, port int) (err error) {
-	hostport := fmt.Sprintf("%s:%d", host, port)
-	addr := url.URL{Scheme: "wss", Host: hostport}
-	slog.Debug("connecting", "address", addr.String())
+type Client struct {
+	conn *websocket.Conn
+}
+
+type clientOptions struct {
+	hostname string
+}
+
+type ClientOption func(*clientOptions)
+
+func WithHostname(hostname string) ClientOption {
+	return func(co *clientOptions) {
+		co.hostname = hostname
+	}
+}
+
+func NewClient(port int, opts ...ClientOption) (*Client, error) {
+	defaults := &clientOptions{
+		hostname: "archipelago.gg",
+	}
+
+	for _, opt := range opts {
+		opt(defaults)
+	}
+
+	addr := url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", defaults.hostname, port)}
 
 	conn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer func() {
-		if closeErr := conn.Close(); closeErr != nil {
-			err = closeErr
-			slog.Error("closing connection", "error", err)
-		}
-	}()
 
-	msgType, msg, err := conn.ReadMessage()
+	client := &Client{
+		conn: conn,
+	}
+
+	return client, nil
+}
+
+func (c *Client) Close() error {
+	return c.conn.Close()
+}
+
+func (c *Client) Receive() error {
+	_, raw, err := c.conn.ReadMessage()
 	if err != nil {
-		slog.Error("reading message", "error", err)
 		return err
 	}
-	if msgType != websocket.TextMessage {
-		err = errors.New("unexpected message type")
-		slog.Error(err.Error(), "type", msgType)
-		return err
-	}
-	slog.Info("received", "msg", msg)
 
-	return err
+	packets := []ServerPacket{}
+	if err = json.Unmarshal(raw, &packets); err != nil {
+		return err
+	}
+
+	for _, p := range packets {
+		switch p.Type {
+		case ServerRoomInfo:
+			fmt.Printf("Generator version: %s\n", p.GeneratorVersion)
+			fmt.Printf("Archipelago version: %s\n", p.Version)
+			return nil
+		default:
+			fmt.Println(errors.New("unknown packet type"))
+		}
+	}
+	return nil
 }

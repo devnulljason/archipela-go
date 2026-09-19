@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    cmd: go build -o build/pela cmd/pela.go
+  run:
+    deps: [build]
+    dir: build
+    cmd: ./pela
