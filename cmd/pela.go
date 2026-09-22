@@ -19,7 +19,23 @@ func main() {
 		}
 	}()
 
-	err = client.Receive()
+	packets, err := client.Receive()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, p := range packets {
+		fmt.Printf("%T\n", p)
+	}
+
+	d := archipelago.GetDataPackage{
+		Games: []string{"Archipelago"},
+	}
+	if err = client.Send(d); err != nil {
+		fmt.Printf("error sending: %s", err)
+	}
+
+	_, err = client.Receive()
 	if err != nil {
 		fmt.Println(err)
 	}

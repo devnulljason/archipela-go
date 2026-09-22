@@ -5,7 +5,6 @@ package archipelago
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -38,7 +37,6 @@ func NewClient(port int, opts ...ClientOption) (*Client, error) {
 	}
 
 	addr := url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", defaults.hostname, port)}
-
 	conn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
 	if err != nil {
 		return nil, err
@@ -55,26 +53,26 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
-func (c *Client) Receive() error {
+func (c *Client) Receive() ([]ServerPacket, error) {
 	_, raw, err := c.conn.ReadMessage()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(raw))
+
+	packets := []ServerPacket{}
+	if err = json.Unmarshal(raw, &packets); err != nil {
+		return nil, err
+	}
+
+	return packets, nil
+}
+
+func (c *Client) Send(p ...GetDataPackage) error {
+	raw, err := json.Marshal(p)
 	if err != nil {
 		return err
 	}
 
-	packets := []ServerPacket{}
-	if err = json.Unmarshal(raw, &packets); err != nil {
-		return err
-	}
-
-	for _, p := range packets {
-		switch p.Type {
-		case ServerRoomInfo:
-			fmt.Printf("Generator version: %s\n", p.GeneratorVersion)
-			fmt.Printf("Archipelago version: %s\n", p.Version)
-			return nil
-		default:
-			fmt.Println(errors.New("unknown packet type"))
-		}
-	}
-	return nil
+	return c.conn.WriteMessage(websocket.TextMessage, raw)
 }
