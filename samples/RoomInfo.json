@@ -1,0 +1,35 @@
+{
+    "cmd": "RoomInfo",
+    "password": false,
+    "games": [
+        "Archipelago"
+    ],
+    "tags": [
+        "AP",
+        "WebHost"
+    ],
+    "version": {
+        "major": 0,
+        "minor": 6,
+        "build": 7,
+        "class": "Version"
+    },
+    "generator_version": {
+        "major": 0,
+        "minor": 6,
+        "build": 7,
+        "class": "Version"
+    },
+    "permissions": {
+        "release": 7,
+        "remaining": 2,
+        "collect": 1
+    },
+    "hint_cost": 30,
+    "location_check_points": 1,
+    "datapackage_checksums": {
+        "Archipelago": "ac9141e9ad0318df2fa27da5f20c50a842afeecb"
+    },
+    "seed_name": "83353347295836478478",
+    "time": 1790211071.2887022
+}
