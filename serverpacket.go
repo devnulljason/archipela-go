@@ -2,32 +2,64 @@ package archipelago
 
 import (
 	"encoding/json/jsontext"
-	"fmt"
 	"math"
 	"time"
 )
 
-type MessageType string
+const (
+	CommandRoomInfo = "RoomInfo"
+)
 
-const ServerRoomInfo MessageType = "RoomInfo"
+// Actions that a player can take regarding their items.
+const (
+	// ActionCollect collects all of a player's items from other players.
+	ActionCollect = "collect"
+
+	// ActionRelease sends all items in a player's game to other players.
+	ActionRelease = "release"
+
+	// ActionRemaining queries the number of items in a player's game.
+	ActionRemaining = "remaining"
+)
+
+// Permissions for [ActionCollect], [ActionRelease], and [ActionRemaining].
+const (
+	// PermDisabled disables an action from running at any time.
+	PermDisabled = 0
+
+	// PermEnabled allows an action to be run manually at any time.
+	PermEnabled = 1
+
+	// PermGoal allows manual use of an action only if the player's goal has been completed.
+	PermGoal = 2
+
+	// PermAuto automatically takes the action after a player's goal has been completed.
+	// Only valid for [ActionCollect] and [ActionRelease].
+	PermAuto = 6
+
+	// PermAutoEnabled allows running an action at any time,
+	// and automatically runs it when a player's goal has been completed.
+	// Only valid for [ActionCollect] and [ActionRelease].
+	PermAutoEnabled = 7
+)
 
 type ServerPacket struct {
-	Type MessageType `json:"cmd"`
+	Type string `json:"cmd"`
 	RoomInfo
 }
 
 type RoomInfo struct {
-	Version             NetworkVersion               `json:"version"`
-	GeneratorVersion    NetworkVersion               `json:"generator_version"`
-	Tags                []string                     `json:"tags"`
-	AuthRequired        bool                         `json:"password"`
-	Permissions         map[PermissionKey]Permission `json:"permissions"`
-	HintCost            int                          `json:"hint_cost"`
-	LocationCheckPoints int                          `json:"location_check_points"`
-	Games               []string                     `json:"games"`
-	PackageChecksums    map[string]string            `json:"datapackage_checksums"`
-	SeedName            string                       `json:"seed_name"`
-	Received            FloatUnixTimestamp           `json:"time"`
+	Version             NetworkVersion     `json:"version"`
+	GeneratorVersion    NetworkVersion     `json:"generator_version"`
+	Tags                []string           `json:"tags"`
+	AuthRequired        bool               `json:"password"`
+	Permissions         map[string]int     `json:"permissions"`
+	HintCost            int                `json:"hint_cost"`
+	LocationCheckPoints int                `json:"location_check_points"`
+	Games               []string           `json:"games"`
+	PackageChecksums    map[string]string  `json:"datapackage_checksums"`
+	SeedName            string             `json:"seed_name"`
+	Received            FloatUnixTimestamp `json:"time"`
 }
 
 type DataPackage struct {
@@ -46,28 +78,6 @@ type NetworkVersion struct {
 	Minor int
 	Build int
 }
-
-func (v NetworkVersion) String() string {
-	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Build)
-}
-
-type Permission int
-
-const (
-	Disabled    Permission = 0
-	Enabled     Permission = 1
-	Goal        Permission = 2
-	Auto        Permission = 6
-	AutoEnabled Permission = 7
-)
-
-type PermissionKey string
-
-const (
-	Release   PermissionKey = "release"
-	Collect   PermissionKey = "collect"
-	Remaining PermissionKey = "remaining"
-)
 
 type FloatUnixTimestamp struct {
 	time.Time
