@@ -2,12 +2,16 @@ package archipelago
 
 import (
 	"encoding/json/jsontext"
+	"encoding/json/v2"
+	"maps"
 	"math"
 	"time"
 )
 
+// Possible values for "cmd" on packets received from the Archipelago server.
 const (
-	CommandRoomInfo = "RoomInfo"
+	CommandRoomInfo    = "RoomInfo"
+	CommandDataPackage = "DataPackage"
 )
 
 // Actions that a player can take regarding their items.
@@ -62,27 +66,42 @@ type RoomInfo struct {
 	Received            FloatUnixTimestamp `json:"time"`
 }
 
-type DataPackage struct {
-	Data map[string]GameData
+type DataPackage map[string]GameData
+
+func (dp *DataPackage) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	type dataPackage struct {
+		Data struct {
+			Games map[string]GameData `json:"games"`
+		} `json:"data"`
+	}
+
+	d := dataPackage{}
+	if err := json.UnmarshalDecode(dec, &d); err != nil {
+		return err
+	}
+
+	maps.Copy(*dp, d.Data.Games)
+	return nil
 }
 
 type GameData struct {
-	Name             string
-	ItemNameToID     map[string]int
-	LocationNameToID map[string]int
-	Checksum         string
+	ItemNameToID     map[string]int `json:"item_name_to_id"`
+	LocationNameToID map[string]int `json:"location_name_to_id"`
+	Checksum         string         `json:"checksum"`
 }
 
 type NetworkVersion struct {
-	Major int
-	Minor int
-	Build int
+	Major int `json:"major"`
+	Minor int `json:"minor"`
+	Build int `json:"build"`
 }
 
+// FloatUnixTimestamp is a wrapper around [time.Time] that allows unmarshaling from a float value.
 type FloatUnixTimestamp struct {
 	time.Time
 }
 
+// UnmarshalJSONFrom implements the [encoding/json/v2.UnmarshalerFrom] interface.
 func (u *FloatUnixTimestamp) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	timeToken, err := dec.ReadToken()
 	if err != nil {
