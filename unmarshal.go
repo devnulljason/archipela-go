@@ -9,10 +9,10 @@ import (
 )
 
 // UnmarshalJSONFrom implements the [encoding/json/v2.UnmarshalerFrom] interface.
-func (dp *DataPackage) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+func (gd *GameData) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	type dataPackage struct {
 		Data struct {
-			Games map[string]GameData `json:"games"`
+			Games map[string]DataMapping `json:"games"`
 		} `json:"data"`
 	}
 
@@ -21,7 +21,7 @@ func (dp *DataPackage) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 		return err
 	}
 
-	maps.Copy(*dp, d.Data.Games)
+	maps.Copy(*gd, d.Data.Games)
 	return nil
 }
 

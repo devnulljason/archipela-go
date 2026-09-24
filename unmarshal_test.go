@@ -26,7 +26,7 @@ func TestUnmarshalJSON(t *testing.T) {
         }
     }
 }`
-		want := DataPackage{
+		want := GameData{
 			"Archipelago": {
 				ItemNameToID: map[string]int{
 					"Nothing": -1,
@@ -38,7 +38,7 @@ func TestUnmarshalJSON(t *testing.T) {
 				Checksum: "ac9141e9ad0318df2fa27da5f20c50a842afeecb",
 			},
 		}
-		got := DataPackage{}
+		got := GameData{}
 
 		if err := json.Unmarshal([]byte(raw), &got); err != nil {
 			t.Fatalf("error unmarshaling json: %s", err)

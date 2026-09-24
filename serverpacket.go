@@ -43,9 +43,8 @@ const (
 	PermAutoEnabled = 7
 )
 
-type ServerPacket struct {
-	Type string `json:"cmd"`
-	RoomInfo
+type Packet struct {
+	Command string `json:"cmd"`
 }
 
 type RoomInfo struct {
@@ -62,9 +61,9 @@ type RoomInfo struct {
 	Received            FloatUnixTimestamp `json:"time"`
 }
 
-type DataPackage map[string]GameData
+type GameData map[string]DataMapping
 
-type GameData struct {
+type DataMapping struct {
 	ItemNameToID     map[string]int `json:"item_name_to_id"`
 	LocationNameToID map[string]int `json:"location_name_to_id"`
 	Checksum         string         `json:"checksum"`
