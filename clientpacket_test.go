@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestJSONMarshal(t *testing.T) {
+func TestMarshalJSON(t *testing.T) {
 	testcases := []struct {
 		name string
 		obj  any
