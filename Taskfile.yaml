@@ -4,7 +4,20 @@ version: "3"
 tasks:
   build:
     cmd: go build -o build/pela cmd/pela.go
+
   run:
     deps: [build]
     dir: build
     cmd: ./pela
+
+  test:
+    cmd: go test -v -cover ./...
+
+  lint:
+    cmd: golangci-lint run
+
+  fmt:
+    cmd: golangci-lint fmt --diff-colored
+
+  vuln:
+    cmd: govulncheck -show color ./...

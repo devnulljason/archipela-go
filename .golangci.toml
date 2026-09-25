@@ -1,0 +1,38 @@
+version = "2"
+
+[linters]
+default = "standard"
+enable = [
+    "decorder",
+    "embeddedstructfieldcheck",
+    "errname",
+    "funcorder",
+    "godoclint",
+    "godot",
+    "gosec",
+    "misspell",
+    "modernize",
+    "nakedret",
+]
+
+[linters.exclusions]
+presets = ["std-error-handling", "common-false-positives"]
+
+[[linters.exclusions.rules]]
+path = '(.+)_test\.go'
+linters = ["godoclint"]
+
+[linters.settings.decorder]
+dec-order = ["const", "var", "type", "func"]
+disable-dec-order-check = false
+disable-init-func-first-check = false
+
+[linters.settings.godoclint]
+default = "all"
+options = { max-len = { length = 97 } }
+
+[linters.settings.misspell]
+locale = "US"
+
+[formatters]
+enable = ["gofumpt"]
