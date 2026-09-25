@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"encoding/json/jsontext"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/gorilla/websocket"
@@ -15,19 +16,20 @@ import (
 // Client provides a websocket client for communicating with an Archipelago server.
 type Client struct {
 	conn *websocket.Conn
+	addr url.URL
 }
 
-type clientOptions struct {
+type clientConfig struct {
 	hostname string
 }
 
 // ClientOptions configure a [Client] when using the [NewClient] function.
-type ClientOptions func(*clientOptions)
+type ClientOptions func(*clientConfig)
 
-// WithHostname allows for changing the hostname of an Archipelago server.
-// Otherwise, the default "archipelago.gg" is used.
+// WithHostname changes the hostname for the Archipelago server.
+// The default hostname is "archipelago.gg".
 func WithHostname(hostname string) ClientOptions {
-	return func(co *clientOptions) {
+	return func(co *clientConfig) {
 		co.hostname = hostname
 	}
 }
@@ -35,26 +37,32 @@ func WithHostname(hostname string) ClientOptions {
 // NewClient uses the provided configurations to create a websocket client to
 // communicate with an Archipelago server.
 // A port number for the MultiWorld room must be provided.
-func NewClient(port int, opts ...ClientOptions) (*Client, error) {
-	defaults := &clientOptions{
+func NewClient(port int, opts ...ClientOptions) *Client {
+	config := clientConfig{
 		hostname: "archipelago.gg",
 	}
 
-	for _, opt := range opts {
-		opt(defaults)
+	for _, optfunc := range opts {
+		optfunc(&config)
 	}
 
-	addr := url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", defaults.hostname, port)}
-	conn, _, err := websocket.DefaultDialer.Dial(addr.String(), nil)
+	client := &Client{}
+
+	client.addr = url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", config.hostname, port)}
+	return client
+}
+
+// Connect initiates a connection to the Archipelago server.
+func (c *Client) Connect() error {
+	c.addr.Scheme = "wss"
+	conn, res, err := websocket.DefaultDialer.Dial(c.addr.String(), nil)
+	log.Printf("%+v", res)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	client := &Client{
-		conn: conn,
-	}
-
-	return client, nil
+	c.conn = conn
+	return nil
 }
 
 // Close attempts to gracefully close the websocket connection to an Archipelago server.

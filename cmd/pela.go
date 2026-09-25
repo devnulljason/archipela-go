@@ -1,3 +1,4 @@
+// pela is a command-line program to interact with an Archipelago server.
 package main
 
 import (
@@ -10,20 +11,21 @@ import (
 func main() {
 	port := 55965
 
-	client, err := archipelago.NewClient(port)
-	if err != nil {
-		fmt.Printf("error creating client: %s", err)
-	}
+	client := archipelago.NewClient(port)
 	defer func() {
 		if err := client.Close(); err != nil {
 			fmt.Printf("error closing client: %s", err)
 		}
 	}()
 
+	if err := client.Connect(); err != nil {
+		log.Fatalf("websocket connection error: %s", err)
+	}
+
 	d := archipelago.GetDataPackage{
 		Games: []string{"Archipelago"},
 	}
-	if err = client.Send(d); err != nil {
+	if err := client.Send(d); err != nil {
 		fmt.Printf("error sending: %s", err)
 	}
 
