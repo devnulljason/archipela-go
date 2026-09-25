@@ -27,7 +27,7 @@ func main() {
 		fmt.Printf("error sending: %s", err)
 	}
 
-	packets, err := client.Receive()
+	packets, err := client.ReadPackets()
 	if err != nil {
 		fmt.Println(err)
 	}

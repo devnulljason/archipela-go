@@ -5,6 +5,15 @@ tasks:
   build:
     cmd: go build -o build/pela cmd/pela.go
 
+  doc:
+    cmd: go doc -http .
+
+  fmt:
+    cmd: golangci-lint fmt --diff-colored
+
+  lint:
+    cmd: golangci-lint run
+
   run:
     deps: [build]
     dir: build
@@ -12,12 +21,6 @@ tasks:
 
   test:
     cmd: go test -v -cover ./...
-
-  lint:
-    cmd: golangci-lint run
-
-  fmt:
-    cmd: golangci-lint fmt --diff-colored
 
   vuln:
     cmd: govulncheck -show color ./...

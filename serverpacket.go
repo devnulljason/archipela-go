@@ -4,7 +4,8 @@ import (
 	"time"
 )
 
-// Possible values for "cmd" on packets received from the Archipelago server.
+// Possible values for "cmd" on packets received from the Archipelago server,
+// indicating the type of packet being sent by the server.
 const (
 	TypeRoomInfo    = "RoomInfo"
 	TypeDataPackage = "DataPackage"
@@ -47,13 +48,17 @@ type packet struct {
 	Cmd string `json:"cmd"`
 }
 
+// ServerPacket is implemented by all types that can be a top-level object
+// sent by the Archipelago server.
+// The string returned will correspond to the "cmd" key on the server packets.
 type ServerPacket interface {
 	Type() string
 }
 
+// RoomInfo is the information sent in the [TypeRoomInfo] packet.
 type RoomInfo struct {
-	Version             NetworkVersion     `json:"version"`
-	GeneratorVersion    NetworkVersion     `json:"generator_version"`
+	Version             Version            `json:"version"`
+	GeneratorVersion    Version            `json:"generator_version"`
 	Tags                []string           `json:"tags"`
 	AuthRequired        bool               `json:"password"`
 	Permissions         map[string]int     `json:"permissions"`
@@ -65,23 +70,20 @@ type RoomInfo struct {
 	Received            FloatUnixTimestamp `json:"time"`
 }
 
-func (r RoomInfo) Type() string {
-	return TypeRoomInfo
-}
-
+// GameData is the information contained in a [TypeDataPackage] packet.
+// It contains the [DataMapping] for one or more games.
 type GameData map[string]DataMapping
 
-func (gd GameData) Type() string {
-	return TypeDataPackage
-}
-
+// DataMapping is a mapping of a game's items and locations to integer IDs.
 type DataMapping struct {
 	ItemNameToID     map[string]int `json:"item_name_to_id"`
 	LocationNameToID map[string]int `json:"location_name_to_id"`
 	Checksum         string         `json:"checksum"`
 }
 
-type NetworkVersion struct {
+// Version contains version information for the randomizer generator and
+// Archipelago server.
+type Version struct {
 	Major int `json:"major"`
 	Minor int `json:"minor"`
 	Build int `json:"build"`
@@ -90,4 +92,14 @@ type NetworkVersion struct {
 // FloatUnixTimestamp is a wrapper around [time.Time] that allows unmarshaling from a float value.
 type FloatUnixTimestamp struct {
 	time.Time
+}
+
+// Type implements the [ServerPacket] interface for [RoomInfo].
+func (r RoomInfo) Type() string {
+	return TypeRoomInfo
+}
+
+// Type implements the [ServerPacket] interface for [GameData].
+func (gd GameData) Type() string {
+	return TypeDataPackage
 }

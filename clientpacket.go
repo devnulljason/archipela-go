@@ -5,10 +5,13 @@ import (
 	"encoding/json/v2"
 )
 
+// GetDataPackage represents a request for metadata about the Archipelago room's games.
+// The metadata is provided in a [GameData] response from the server.
 type GetDataPackage struct {
 	Games []string
 }
 
+// MarshalJSONTo implements the [encoding/json/v2.MarshalerTo] interface for [GetDataPackage].
 func (p *GetDataPackage) MarshalJSONTo(enc *jsontext.Encoder) error {
 	if err := enc.WriteToken(jsontext.BeginObject); err != nil {
 		return err
