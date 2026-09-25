@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/devnulljason/archipelago"
 )
@@ -19,15 +20,6 @@ func main() {
 		}
 	}()
 
-	packets, err := client.Receive()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	for _, p := range packets {
-		fmt.Printf("%T\n", p)
-	}
-
 	d := archipelago.GetDataPackage{
 		Games: []string{"Archipelago"},
 	}
@@ -35,8 +27,12 @@ func main() {
 		fmt.Printf("error sending: %s", err)
 	}
 
-	_, err = client.Receive()
+	packets, err := client.Receive()
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	for _, p := range packets {
+		log.Printf("%+v", p)
 	}
 }

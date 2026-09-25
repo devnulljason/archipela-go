@@ -5,6 +5,7 @@ package archipelago
 
 import (
 	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"net/url"
 
@@ -58,11 +59,35 @@ func (c *Client) Receive() ([]ServerPacket, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(raw))
 
-	packets := []ServerPacket{}
-	if err = json.Unmarshal(raw, &packets); err != nil {
+	data := []jsontext.Value{}
+	if err := json.Unmarshal(raw, &data); err != nil {
 		return nil, err
+	}
+
+	packets := make([]ServerPacket, len(data))
+	for i, d := range data {
+		comm := packet{}
+		if err := json.Unmarshal(d, &comm); err != nil {
+			return nil, err
+		}
+
+		switch comm.Cmd {
+		case TypeDataPackage:
+			p := GameData{}
+			if err := json.Unmarshal(d, &p); err != nil {
+				return nil, err
+			}
+			packets[i] = p
+		case TypeRoomInfo:
+			p := RoomInfo{}
+			if err := json.Unmarshal(d, &p); err != nil {
+				return nil, err
+			}
+			packets[i] = p
+		default:
+			return nil, fmt.Errorf("received unsupported server command: %s", comm.Cmd)
+		}
 	}
 
 	return packets, nil

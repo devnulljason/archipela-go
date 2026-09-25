@@ -6,8 +6,8 @@ import (
 
 // Possible values for "cmd" on packets received from the Archipelago server.
 const (
-	CommandRoomInfo    = "RoomInfo"
-	CommandDataPackage = "DataPackage"
+	TypeRoomInfo    = "RoomInfo"
+	TypeDataPackage = "DataPackage"
 )
 
 // Actions that a player can take regarding their items.
@@ -43,8 +43,12 @@ const (
 	PermAutoEnabled = 7
 )
 
-type Packet struct {
-	Command string `json:"cmd"`
+type packet struct {
+	Cmd string `json:"cmd"`
+}
+
+type ServerPacket interface {
+	Type() string
 }
 
 type RoomInfo struct {
@@ -61,7 +65,15 @@ type RoomInfo struct {
 	Received            FloatUnixTimestamp `json:"time"`
 }
 
+func (r RoomInfo) Type() string {
+	return TypeRoomInfo
+}
+
 type GameData map[string]DataMapping
+
+func (gd GameData) Type() string {
+	return TypeDataPackage
+}
 
 type DataMapping struct {
 	ItemNameToID     map[string]int `json:"item_name_to_id"`
