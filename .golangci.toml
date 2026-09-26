@@ -27,6 +27,10 @@ dec-order = ["const", "var", "type", "func"]
 disable-dec-order-check = false
 disable-init-func-first-check = false
 
+[linters.settings.funcorder]
+alphabetical = true
+function = true
+
 [linters.settings.godoclint]
 default = "all"
 options = { max-len = { length = 97 } }

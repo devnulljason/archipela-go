@@ -52,6 +52,11 @@ func NewClient(port int, opts ...ClientOptions) *Client {
 	return client
 }
 
+// Close attempts to gracefully close the websocket connection to an Archipelago server.
+func (c *Client) Close() error {
+	return c.conn.Close()
+}
+
 // Connect initiates a connection to the Archipelago server.
 func (c *Client) Connect() error {
 	c.addr.Scheme = "wss"
@@ -63,11 +68,6 @@ func (c *Client) Connect() error {
 
 	c.conn = conn
 	return nil
-}
-
-// Close attempts to gracefully close the websocket connection to an Archipelago server.
-func (c *Client) Close() error {
-	return c.conn.Close()
 }
 
 // ReadPackets reads the next message sent by the Archipelago server
