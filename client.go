@@ -46,28 +46,19 @@ func NewClient(port int, opts ...ClientOptions) *Client {
 		optfunc(&config)
 	}
 
-	client := &Client{}
+	client := Client{
+		addr: url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", config.hostname, port)},
+	}
 
-	client.addr = url.URL{Scheme: "wss", Host: fmt.Sprintf("%s:%d", config.hostname, port)}
-	return client
+	return &client
 }
 
 // Close attempts to gracefully close the websocket connection to an Archipelago server.
 func (c *Client) Close() error {
-	return c.conn.Close()
-}
-
-// Connect initiates a connection to the Archipelago server.
-func (c *Client) Connect() error {
-	c.addr.Scheme = "wss"
-	conn, res, err := websocket.DefaultDialer.Dial(c.addr.String(), nil)
-	log.Printf("%+v", res)
-	if err != nil {
-		return err
+	if c.conn == nil {
+		return nil
 	}
-
-	c.conn = conn
-	return nil
+	return c.conn.Close()
 }
 
 // ReadPackets reads the next message sent by the Archipelago server
@@ -75,7 +66,11 @@ func (c *Client) Connect() error {
 // The packets in the message are returned to the caller without any further processing.
 // Generally there will only be a single packet per message,
 // but callers should always check the length of the returned slice.
-func (c *Client) ReadPackets() ([]ServerPacket, error) {
+func (c *Client) Receive() ([]ServerPacket, error) {
+	if err := c.ensureConnection(); err != nil {
+		return nil, err
+	}
+
 	_, raw, err := c.conn.ReadMessage()
 	if err != nil {
 		return nil, err
@@ -116,10 +111,29 @@ func (c *Client) ReadPackets() ([]ServerPacket, error) {
 
 // Send sends a client package to the Archipelago server.
 func (c *Client) Send(p ...GetDataPackage) error {
+	if err := c.ensureConnection(); err != nil {
+		return err
+	}
+
 	raw, err := json.Marshal(p)
 	if err != nil {
 		return err
 	}
 
 	return c.conn.WriteMessage(websocket.TextMessage, raw)
+}
+
+func (c *Client) ensureConnection() error {
+	if c.conn != nil {
+		return nil
+	}
+
+	conn, res, err := websocket.DefaultDialer.Dial(c.addr.String(), nil)
+	log.Printf("%+v", res)
+	if err != nil {
+		return err
+	}
+
+	c.conn = conn
+	return nil
 }

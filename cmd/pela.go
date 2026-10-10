@@ -18,10 +18,6 @@ func main() {
 		}
 	}()
 
-	if err := client.Connect(); err != nil {
-		log.Fatalf("websocket connection error: %s", err)
-	}
-
 	d := archipelago.GetDataPackage{
 		Games: []string{"Archipelago"},
 	}
@@ -29,7 +25,7 @@ func main() {
 		fmt.Printf("error sending: %s", err)
 	}
 
-	packets, err := client.ReadPackets()
+	packets, err := client.Receive()
 	if err != nil {
 		fmt.Println(err)
 	}
