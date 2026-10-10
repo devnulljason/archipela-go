@@ -1,4 +1,4 @@
-// pela is a command-line program to interact with an Archipelago server.
+// pela is a command-line client for Archipelago.
 package main
 
 import (

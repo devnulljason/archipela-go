@@ -23,7 +23,7 @@ type clientConfig struct {
 	hostname string
 }
 
-// ClientOptions configure a [Client] when using the [NewClient] function.
+// ClientOptions are configurations for a [Client] that can be used with the [NewClient] function.
 type ClientOptions func(*clientConfig)
 
 // WithHostname changes the hostname for the Archipelago server.
@@ -34,9 +34,10 @@ func WithHostname(hostname string) ClientOptions {
 	}
 }
 
-// NewClient uses the provided configurations to create a websocket client to
-// communicate with an Archipelago server.
+// NewClient uses the provided configurations to create a websocket client for
+// communication with an Archipelago server.
 // A port number for the MultiWorld room must be provided.
+// The client waits to establish a connection with a server until the first read or write.
 func NewClient(port int, opts ...ClientOptions) *Client {
 	config := clientConfig{
 		hostname: "archipelago.gg",
@@ -61,10 +62,10 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
-// ReadPackets reads the next message sent by the Archipelago server
+// Receive reads the next message sent by the Archipelago server
 // and parses the packets it contains.
 // The packets in the message are returned to the caller without any further processing.
-// Generally there will only be a single packet per message,
+// Most of the time there will only be a single packet per message,
 // but callers should always check the length of the returned slice.
 func (c *Client) Receive() ([]ServerPacket, error) {
 	if err := c.ensureConnection(); err != nil {
@@ -109,7 +110,7 @@ func (c *Client) Receive() ([]ServerPacket, error) {
 	return packets, nil
 }
 
-// Send sends a client package to the Archipelago server.
+// Send sends a client message to the Archipelago server.
 func (c *Client) Send(p ...GetDataPackage) error {
 	if err := c.ensureConnection(); err != nil {
 		return err
