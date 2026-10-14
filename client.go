@@ -15,16 +15,22 @@ import (
 
 // Client provides a websocket client for communicating with an Archipelago server.
 type Client struct {
-	conn *websocket.Conn
+	conn wsConnection
 	addr url.URL
 }
+
+// ClientOptions are configurations for a [Client] that can be used with the [NewClient] function.
+type ClientOptions func(*clientConfig)
 
 type clientConfig struct {
 	hostname string
 }
 
-// ClientOptions are configurations for a [Client] that can be used with the [NewClient] function.
-type ClientOptions func(*clientConfig)
+type wsConnection interface {
+	ReadMessage() (int, []byte, error)
+	WriteMessage(int, []byte) error
+	Close() error
+}
 
 // WithHostname changes the hostname for the Archipelago server.
 // The default hostname is "archipelago.gg".
@@ -43,8 +49,8 @@ func NewClient(port int, opts ...ClientOptions) *Client {
 		hostname: "archipelago.gg",
 	}
 
-	for _, optfunc := range opts {
-		optfunc(&config)
+	for _, opt := range opts {
+		opt(&config)
 	}
 
 	client := Client{
@@ -63,7 +69,7 @@ func (c *Client) Close() error {
 }
 
 // Receive reads the next message sent by the Archipelago server
-// and parses the packets it contains.
+// and parses the packets it contains into Go structs.
 // The packets in the message are returned to the caller without any further processing.
 // Most of the time there will only be a single packet per message,
 // but callers should always check the length of the returned slice.
@@ -103,7 +109,7 @@ func (c *Client) Receive() ([]ServerPacket, error) {
 			}
 			packets[i] = p
 		default:
-			return nil, fmt.Errorf("received unsupported server command: %s", comm.Cmd)
+			return nil, fmt.Errorf("unsupported server message: %s", comm.Cmd)
 		}
 	}
 
@@ -111,7 +117,7 @@ func (c *Client) Receive() ([]ServerPacket, error) {
 }
 
 // Send sends a client message to the Archipelago server.
-func (c *Client) Send(p ...GetDataPackage) error {
+func (c Client) Send(p ...GetDataPackage) error {
 	if err := c.ensureConnection(); err != nil {
 		return err
 	}
@@ -129,8 +135,7 @@ func (c *Client) ensureConnection() error {
 		return nil
 	}
 
-	conn, res, err := websocket.DefaultDialer.Dial(c.addr.String(), nil)
-	log.Printf("%+v", res)
+	conn, _, err := websocket.DefaultDialer.Dial(c.addr.String(), nil)
 	if err != nil {
 		return err
 	}
