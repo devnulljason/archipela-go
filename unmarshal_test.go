@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	t.Run("DataPackage", func(t *testing.T) {
 		raw := `{
     "cmd": "DataPackage",
@@ -28,10 +28,10 @@ func TestUnmarshalJSON(t *testing.T) {
 }`
 		want := GameData{
 			"Archipelago": {
-				ItemNameToID: map[string]int{
+				ItemID: map[string]int{
 					"Nothing": -1,
 				},
-				LocationNameToID: map[string]int{
+				LocationID: map[string]int{
 					"Cheat Console": -1,
 					"Server":        -2,
 				},
@@ -51,8 +51,8 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	t.Run("FloatUnixTimestamp", func(t *testing.T) {
 		raw := []byte("1136239445.1234567")
-		want := FloatUnixTimestamp{time.Unix(1136239445, 123456700)}
-		got := FloatUnixTimestamp{}
+		want := floatUnixTimestamp{time.Unix(1136239445, 123456700)}
+		got := floatUnixTimestamp{}
 
 		if err := json.Unmarshal(raw, &got); err != nil {
 			t.Fatalf("error unmarshaling json: %s", err)

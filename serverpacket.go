@@ -57,8 +57,8 @@ type ServerPacket interface {
 
 // RoomInfo is the information sent in the [TypeRoomInfo] packet.
 type RoomInfo struct {
-	Version             Version            `json:"version"`
-	GeneratorVersion    Version            `json:"generator_version"`
+	Version             version            `json:"version"`
+	GeneratorVersion    version            `json:"generator_version"`
 	Tags                []string           `json:"tags"`
 	AuthRequired        bool               `json:"password"`
 	Permissions         map[string]int     `json:"permissions"`
@@ -67,30 +67,25 @@ type RoomInfo struct {
 	Games               []string           `json:"games"`
 	PackageChecksums    map[string]string  `json:"datapackage_checksums"`
 	SeedName            string             `json:"seed_name"`
-	Received            FloatUnixTimestamp `json:"time"`
+	Received            floatUnixTimestamp `json:"time"`
 }
 
 // GameData is the information contained in a [TypeDataPackage] packet.
-// It contains the [DataMapping] for one or more games.
-type GameData map[string]DataMapping
+type GameData map[string]dataMapping
 
-// DataMapping is a mapping of a game's items and locations to integer IDs.
-type DataMapping struct {
-	ItemNameToID     map[string]int `json:"item_name_to_id"`
-	LocationNameToID map[string]int `json:"location_name_to_id"`
-	Checksum         string         `json:"checksum"`
+type dataMapping struct {
+	ItemID     map[string]int `json:"item_name_to_id"`
+	LocationID map[string]int `json:"location_name_to_id"`
+	Checksum   string         `json:"checksum"`
 }
 
-// Version contains version information for the randomizer generator and
-// Archipelago server.
-type Version struct {
+type version struct {
 	Major int `json:"major"`
 	Minor int `json:"minor"`
 	Build int `json:"build"`
 }
 
-// FloatUnixTimestamp is a wrapper around [time.Time] that allows unmarshaling from a float value.
-type FloatUnixTimestamp struct {
+type floatUnixTimestamp struct {
 	time.Time
 }
 

@@ -4,7 +4,8 @@ import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"maps"
-	"math"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -12,7 +13,7 @@ import (
 func (gd *GameData) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	type dataPackage struct {
 		Data struct {
-			Games map[string]DataMapping `json:"games"`
+			Games map[string]dataMapping `json:"games"`
 		} `json:"data"`
 	}
 
@@ -26,20 +27,23 @@ func (gd *GameData) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 }
 
 // UnmarshalJSONFrom implements the [encoding/json/v2.UnmarshalerFrom] interface.
-func (u *FloatUnixTimestamp) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
-	timeToken, err := dec.ReadToken()
+func (u *floatUnixTimestamp) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	token, err := dec.ReadToken()
 	if err != nil {
 		return err
 	}
-	timeFloat, err := timeToken.Float()
-	if err != nil {
-		return err
-	}
-	sec, nsec := math.Modf(timeFloat)
-
 	// Python floating-point timestamps don't have full nanosecond precision, see PEP-564
-	// converting in two steps to avoid floating-point shenanigans
-	intnsec := int64(nsec*1e7) * 100
-	u.Time = time.Unix(int64(sec), intnsec)
+	// using strings to avoid floating-point shenanigans
+	timeStr := strings.Split(token.String(), ".")
+	sec, err := strconv.Atoi(timeStr[0])
+	if err != nil {
+		return err
+	}
+	nsec, err := strconv.Atoi(timeStr[1])
+	if err != nil {
+		return err
+	}
+
+	u.Time = time.Unix(int64(sec), int64(nsec*100))
 	return nil
 }
