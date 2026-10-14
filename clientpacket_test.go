@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestMarshalJSON(t *testing.T) {
+func TestMarshal(t *testing.T) {
 	testcases := []struct {
 		name string
 		obj  any
@@ -14,7 +14,7 @@ func TestMarshalJSON(t *testing.T) {
 		{
 			name: "GetDataPackage",
 			obj:  GetDataPackage{Games: []string{"Archipelago"}},
-			want: `{"cmd":"GetDataPackage","games":["Archipelago"]}`,
+			want: `{"games":["Archipelago"],"cmd":"GetDataPackage"}`,
 		},
 	}
 
